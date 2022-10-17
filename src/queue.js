@@ -13,27 +13,72 @@ const { ListNode } = require('../extensions/list-node.js');
  * queue.getUnderlyingList() // returns { value: 3, next: null }
  */
 class Queue {
+  linkedList = null;
 
-  constructor(){
-    this.items = [];
+  convertArrayToList(arr) {
+    return arr.reverse().reduce((acc, cur) => {
+      if (acc) {
+        const node = new ListNode(cur);
+        node.next = acc;
+        return node;
+      }
+
+      return new ListNode(cur);
+    }, null);
   }
+
   getUnderlyingList() {
-    throw new NotImplementedError('Not implemented');
+    let arr = [];
+    if (this.linkedList.value !== null || this.linkedList.value !== undefined) {
+      do {
+        arr.push(this.linkedList.value);
+
+        this.linkedList = this.linkedList.next;
+
+        if (this.linkedList?.next === null) {
+          arr.push(this.linkedList.value);
+        }
+      } while (this.linkedList?.next != null);
+    }
+    return this.convertArrayToList(arr.reverse());
   }
 
   enqueue(value) {
-    this.items.push(value);
+    if (!this.linkedList) {
+      this.linkedList = new ListNode(value);
+      return;
+    }
+
+    const newLinkedList = new ListNode(value);
+    newLinkedList.next = this.linkedList;
+
+    this.linkedList = newLinkedList;
   }
 
   dequeue() {
-    if(this.isEmpty())
-    return "Underflow";
-    return this.items.shift();
+    return this.dequeueInternal(this.linkedList, { isPrevElementFinal: true });
   }
-  isEmpty()
-{
-    return this.items.length == 0;
-}
+
+  dequeueInternal(currentListElement, isPrevObj) {
+    if (currentListElement.next === null) {
+      isPrevObj.isPrevElementFinal = true;
+      return;
+    }
+    else { 
+      const returnedValue = this.dequeueInternal(currentListElement.next, isPrevObj);
+      if (returnedValue !== undefined)
+        return returnedValue;
+    }
+
+    if (isPrevObj.isPrevElementFinal) {
+      const valueToReturn = currentListElement.next.value;
+      currentListElement.next = null;
+
+      isPrevObj.isPrevElementFinal = false;
+
+      return valueToReturn;
+    }
+  }
 }
 
 module.exports = {
